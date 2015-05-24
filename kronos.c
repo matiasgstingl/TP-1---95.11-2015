@@ -105,16 +105,17 @@ status_t validate_arguments(int argc,char* argv[],char*date1_fmt,ulong*p_date1,c
 #define MSG_ERROR_INVALID_DATE_1 "La fecha 1 ingresada es invalida."
 #define MSG_ERROR_INVALID_DATE_2 "La fecha 2 ingresada es invalida."
 #define MSG_ERROR_INVALID_OUT_UNIT "La unidad especificada es invalida."
+#define MSG_ERROR_INVALID_PRECISION "La precision especificada es invalida."
 
 /******************************* TIPOS ENUMERATIVOS Y ESTRUCTURAS ***************/
-typedef enum{OK = -1, ERROR_FEW_ARGS = 0, ERROR_MANY_ARGS = 1, ERROR_INVALID_ARG = 2, ERROR_NULL_POINTER = 3, ERROR_INVALID_DATE_1 = 4, ERROR_INVALID_DATE_2 = 5, ERROR_INVALID_OUT_UNIT = 6}status_t;
+typedef enum{OK = -1, ERROR_FEW_ARGS = 0, ERROR_MANY_ARGS = 1, ERROR_INVALID_ARG = 2, ERROR_NULL_POINTER = 3, ERROR_INVALID_DATE_1 = 4, ERROR_INVALID_DATE_2 = 5, ERROR_INVALID_OUT_UNIT = 6, ERROR_INVALID_PRECISION = 7}status_t;
 typedef enum{TRUE, FALSE}bool_t;
 typedef unsigned long ulong;
 /********************************************************************************/
 
 /************************************** DICCIONARIOS *************************/
 char * date_formats[] = {DATE_FORMAT_1, DATE_FORMAT_2, DATE_FORMAT_3};  
-char * error_msgs[] = {MSG_ERROR_FEW_ARGS, MSG_ERROR_MANY_ARGS, MSG_ERROR_INVALID_AR, MSG_ERROR_NULL_POINTER, MSG_ERROR_INVALID_DATE_1, MSG_ERROR_INVALID_DATE_2, MSG_ERROR_INVALID_OUT_UNIT}; 
+char * error_msgs[] = {MSG_ERROR_FEW_ARGS, MSG_ERROR_MANY_ARGS, MSG_ERROR_INVALID_AR, MSG_ERROR_NULL_POINTER, MSG_ERROR_INVALID_DATE_1, MSG_ERROR_INVALID_DATE_2, MSG_ERROR_INVALID_OUT_UNIT, MSG_ERROR_INVALID_PRECISION}; 
 /*****************************************************************************/
 
 /************* PROTOTIPOS *****************/
@@ -145,7 +146,7 @@ status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_dat
 	bool_t correct_date;
 	
 	/********** VALIDAMOS PUNTEROS **********/
-	if(date_1 == NULL || date_2 == NULL)
+	if(date_1 == NULL || date_2 == NULL || p_date_1_fmt == NULL || p_date_2_fmt == NULL || p_output_unit == NULL || p_precision == NULL)
 		return error_handling(ERROR_NULL_POINTER);
 
 	/********** VALIDAMOS CANTIDAD **********/
@@ -157,7 +158,7 @@ status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_dat
 	/****************************************/
 
 	/********** VALIDAMOS FLAG A FLAG ***********/
-	for(i=POSITION_FIRST_FLAG; i < CMD_ARG_QTY_PROGRAM_ARGS; i+=FLAG_TO_FLAG_STEP)
+	for(i=1, args_to_parse = 0; i < CMD_ARG_QTY_PROGRAM_ARGS; i+=FLAG_TO_FLAG_STEP)
 	{
 		if(strcmp(argv[i], CMD_ARG_FLAG_FORMAT_1) == 0)
 		{
@@ -192,9 +193,13 @@ status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_dat
 		}
 		if(strcmp(arg[i], CMD_ARG_FLAG_PRECISION) == 0)
 		{
-			*p_precision = strtol(argv[i+1], &aux, 10);
-			if
-					
+			*p_precision = (size_t) strtol(argv[i+1], &aux, 10);
+			if(*aux)
+				return error_handling(ERROR_INVALID_PRECISION);
+			if(*p_precision != 0 && *p_precision != 1 && *p_precision != 2 && *p_precision != 3)
+				return error_handling(ERROR_INVALID_PRECISION);
+			continue;
+		}				
 	}
 			
 	return OK;

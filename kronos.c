@@ -64,7 +64,6 @@ status_t validate_arguments(int argc,char* argv[],char*date1_fmt,ulong*p_date1,c
     return ERROR_INVALID_LIMITS;
   return OK;
 }
-
 /*****************************************************************/
 /* SE PROPONE QUE LOS FORMATOS DE FECHA ESTEN CARGADOS EN UN ARR */
 /* ESTATICO DEFINIDO COMO DICCIONARIO. DE ESTA MANERA SE COMPARA */
@@ -88,23 +87,17 @@ status_t validate_arguments(int argc,char* argv[],char*date1_fmt,ulong*p_date1,c
 #define DATE_FORMAT_3_LEN 7
 #define QTY_FORMATS 3
 
-#define CMD_ARG_QTY_PROGRAM_ARGS 12
+#define CMD_ARG_QTY_PROGRAM_ARGS 13
 #define CMD_ARG_POSITION_FIRST_FLAG 1
-#define CMD_ARG_FLAG_TO_FLAG_STEP 2
+#define FLAG_TO_FLAG_STEP 2
 #define CMD_ARG_FLAG_FORMAT_1 "-fmt1"
 #define CMD_ARG_FLAG_FORMAT_2 "-fmt2"
 #define CMD_ARG_FLAG_DATE_1 "-f1"
 #define CMD_ARG_FLAG_DATE_2 "-f2"
 #define CMD_ARG_FLAG_OUT_UNIT "-u"
 #define CMD_ARG_FLAG_PRECISION "-p"
+#define CMD_ARG_ARGC 13
 
-/******************BANDERAS DE UNIDAD DE TIEMPO *******************************/
-#define TIME_UNIT_FLAG_SECONDS 's'
-#define TIME_UNIT_FLAG_MINUTES 'm'
-#define TIME_UNIT_FLAG_HOURS 'h'
-#define TIME_UNIT_FLAG_DAYS 'd'
-
-/*****************MENSAJES DE ERROR**************************************************/
 #define MSG_ERROR_FEW_ARGS "Error, pocos argumentos en su linea de orden."
 #define MSG_ERROR_MANY_ARGS "Error, demasiados argumentos en su linea de orden."
 #define MSG_ERROR_INVALID_ARG "Error, argumento invalido."
@@ -122,11 +115,11 @@ typedef unsigned long ulong;
 
 /************************************** DICCIONARIOS *************************/
 char * date_formats[] = {DATE_FORMAT_1, DATE_FORMAT_2, DATE_FORMAT_3};  
-char * error_msgs[] = {MSG_ERROR_FEW_ARGS, MSG_ERROR_MANY_ARGS, MSG_ERROR_INVALID_AR, MSG_ERROR_NULL_POINTER, MSG_ERROR_INVALID_DATE_1, MSG_ERROR_INVALID_DATE_2, MSG_ERROR_INVALID_OUT_UNIT, MSG_ERROR_INVALID_PRECISION}; 
+char * error_msgs[] = {MSG_ERROR_FEW_ARGS, MSG_ERROR_MANY_ARGS, MSG_ERROR_INVALID_ARG, MSG_ERROR_NULL_POINTER, MSG_ERROR_INVALID_DATE_1, MSG_ERROR_INVALID_DATE_2, MSG_ERROR_INVALID_OUT_UNIT, MSG_ERROR_INVALID_PRECISION}; 
 /*****************************************************************************/
 
 /************* PROTOTIPOS *****************/
-status_t validate_args (int argc, char * argv[]);
+status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_date_2, char ** p_date_1_fmt, char ** p_date_2_fmt, char * p_output_unit, size_t * p_precision);
 status_t error_handling(status_t err);
 /******************************************/
 
@@ -134,8 +127,20 @@ int main (int argc, char * argv[])
 {
 	ulong date_1;
 	ulong date_2;
-	if(validate_args(argc, argv, &date_1, &date_2)!=OK)
+	char * date_1_fmt;
+	char * date_2_fmt;
+	char output_unit;
+	size_t precision;
+
+	if(validate_args(argc, argv, &date_1, &date_2, &date_1_fmt, &date_2_fmt, &output_unit, &precision)!=OK)
 		return EXIT_FAILURE;
+
+	printf("formato 1: %s\n", date_1_fmt);
+	printf("formato 2: %s\n", date_2_fmt);
+	printf("fecha 1: %lu\n", date_1);
+	printf("fecha 2: %lu\n", date_2);
+	printf("unidad de salida: %c\n", output_unit);
+	printf("precision: %lu\n", precision);
 
 	return EXIT_SUCCESS;
 }
@@ -146,69 +151,75 @@ status_t error_handling(status_t err)
 	return err;
 }
 
-status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_date_2, char * p_date_1_fmt, char * p_date_2_fmt, char * p_output_unit, size_t * p_precision)
+status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_date_2, char ** p_date_1_fmt, char ** p_date_2_fmt, char * p_output_unit, size_t * p_precision)
 {
-	size_t i;
+	size_t i, args_to_validate;
 	char * aux;
-	bool_t correct_date;
 	
 	/********** VALIDAMOS PUNTEROS **********/
-	if(date_1 == NULL || date_2 == NULL || p_date_1_fmt == NULL || p_date_2_fmt == NULL || p_output_unit == NULL || p_precision == NULL)
+	if(argv == NULL || p_date_1 == NULL || p_date_2 == NULL || p_date_1_fmt == NULL || p_date_2_fmt == NULL || p_output_unit == NULL || p_precision == NULL)
 		return error_handling(ERROR_NULL_POINTER);
 
 	/********** VALIDAMOS CANTIDAD **********/
-	if(argc < QTY_PROGRAM_ARGS)
+	if(argc < CMD_ARG_ARGC)
 		return error_handling(ERROR_FEW_ARGS);
 
-	if(argc > QTY_PROGRAM_ARGS)
+	if(argc > CMD_ARG_ARGC)
 		return error_handling(ERROR_MANY_ARGS);
 	/****************************************/
 
 	/********** VALIDAMOS FLAG A FLAG ***********/
-	for(i=1, args_to_parse = 0; i < CMD_ARG_QTY_PROGRAM_ARGS; i+=FLAG_TO_FLAG_STEP)
+	for(i=1, args_to_validate = (CMD_ARG_ARGC-1) ; i < (CMD_ARG_ARGC-1); i+=FLAG_TO_FLAG_STEP)
 	{
 		if(strcmp(argv[i], CMD_ARG_FLAG_FORMAT_1) == 0)
 		{
-			p_date_1_fmt = argv[i+1];
+			*p_date_1_fmt = argv[i+1];
+			args_to_validate-=FLAG_TO_FLAG_STEP;
 			continue;		
 		}	
-		if(strcmp(arg[i], CMD_ARG_FLAG_FORMAT_2) == 0)
+		if(strcmp(argv[i], CMD_ARG_FLAG_FORMAT_2) == 0)
 		{
-			p_date_2_fmt = argv[i+1];
+			*p_date_2_fmt = argv[i+1];
+			args_to_validate-=FLAG_TO_FLAG_STEP;			
 			continue;
 		}
-		if(strcmp(arg[i], CMD_ARG_FLAG_DATE_1) == 0)
+		if(strcmp(argv[i], CMD_ARG_FLAG_DATE_1) == 0)
 		{
-			*p_date_2 = strtol(argv[i+1], &aux, 10);
+			*p_date_1 = (ulong) strtod(argv[i+1], &aux);
 			if(*aux)
 				return error_handling(ERROR_INVALID_DATE_2); 
+			args_to_validate-=FLAG_TO_FLAG_STEP;
 			continue;
 		}
-		if(strcmp(arg[i], CMD_ARG_FLAG_DATE_2) == 0)
+		if(strcmp(argv[i], CMD_ARG_FLAG_DATE_2) == 0)
 		{
-			*p_date_2 = strtol(argv[i+1], &aux, 10);
+			*p_date_2 = (ulong) strtod(argv[i+1], &aux);
 			if(*aux)
 				return error_handling(ERROR_INVALID_DATE_2);
+			args_to_validate-=FLAG_TO_FLAG_STEP;
 			continue;
 		}
-		if(strcmp(arg[i], CMD_ARG_FLAG_OUT_UNIT) == 0)
+		if(strcmp(argv[i], CMD_ARG_FLAG_OUT_UNIT) == 0)
 		{
-			*p_output_unity = arg[i+1][0];
-			if(*p_output_unity != 's' && *p_output_unity != 'm' && *p_output_unity != 'h' && *p_output_unity != 'd')
+			*p_output_unit = argv[i+1][0];
+			if(*p_output_unit != 's' && *p_output_unit != 'm' && *p_output_unit != 'h' && *p_output_unit != 'd')
 				return error_handling(ERROR_INVALID_OUT_UNIT); 
+			args_to_validate-=FLAG_TO_FLAG_STEP;
 			continue;
 		}
-		if(strcmp(arg[i], CMD_ARG_FLAG_PRECISION) == 0)
+		if(strcmp(argv[i], CMD_ARG_FLAG_PRECISION) == 0)
 		{
 			*p_precision = (size_t) strtol(argv[i+1], &aux, 10);
 			if(*aux)
 				return error_handling(ERROR_INVALID_PRECISION);
 			if(*p_precision != 0 && *p_precision != 1 && *p_precision != 2 && *p_precision != 3)
 				return error_handling(ERROR_INVALID_PRECISION);
+			args_to_validate-=FLAG_TO_FLAG_STEP;
 			continue;
-		}				
+		}
+		return error_handling(ERROR_INVALID_ARG);
+	/********************************************/				
 	}
 			
 	return OK;
 }	
-

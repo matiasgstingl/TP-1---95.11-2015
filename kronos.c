@@ -98,6 +98,13 @@ status_t validate_arguments(int argc,char* argv[],char*date1_fmt,ulong*p_date1,c
 #define CMD_ARG_FLAG_OUT_UNIT "-u"
 #define CMD_ARG_FLAG_PRECISION "-p"
 
+/******************BANDERAS DE UNIDAD DE TIEMPO *******************************/
+#define TIME_UNIT_FLAG_SECONDS 's'
+#define TIME_UNIT_FLAG_MINUTES 'm'
+#define TIME_UNIT_FLAG_HOURS 'h'
+#define TIME_UNIT_FLAG_DAYS 'd'
+
+/*****************MENSAJES DE ERROR**************************************************/
 #define MSG_ERROR_FEW_ARGS "Error, pocos argumentos en su linea de orden."
 #define MSG_ERROR_MANY_ARGS "Error, demasiados argumentos en su linea de orden."
 #define MSG_ERROR_INVALID_ARG "Error, argumento invalido."

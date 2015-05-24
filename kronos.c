@@ -223,3 +223,19 @@ status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_dat
 			
 	return OK;
 }	
+
+/* 24 de MAYO de 2015 */
+gabriel@gabriel-desktop:~/Documentos/Facultad de Ingeniería/Algoritmos y Program
+ación 1/TP_1/pruebas_preliminares/manejo_formato_fecha$ gcc -ansi -pedantic -Wall -o date_format.exe date_format.c
+gabriel@gabriel-desktop:~/Documentos/Facultad de Ingeniería/Algoritmos y Program
+ación 1/TP_1/pruebas_preliminares/manejo_formato_fecha$ ./date_format.exe -fmt1 DDMMAAAAhhmmss -f1 13121993143022 -fmt2 DDDAAAA -f2 1232003 -u m -p 2
+formato 1: DDMMAAAAhhmmss
+formato 2: DDDAAAA
+fecha 1: 13121993143022
+fecha 2: 1232003
+unidad de salida: m
+precision: 2
+gabriel@gabriel-desktop:~/Documentos/Facultad de Ingeniería/Algoritmos y Program
+ación 1/TP_1/pruebas_preliminares/manejo_formato_fecha$ ^C
+gabriel@gabriel-desktop:~/Documentos/Facultad de Ingeniería/Algoritmos y Program
+ación 1/TP_1/pruebas_preliminares/manejo_formato_fecha$ 

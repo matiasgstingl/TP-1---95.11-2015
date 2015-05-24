@@ -244,3 +244,15 @@ gabriel@gabriel-desktop:~/Documentos/Facultad de Ingeniería/Algoritmos y Progra
 ación 1/TP_1/pruebas_preliminares/manejo_formato_fecha$ ^C
 gabriel@gabriel-desktop:~/Documentos/Facultad de Ingeniería/Algoritmos y Program
 ación 1/TP_1/pruebas_preliminares/manejo_formato_fecha$ 
+
+gabriel@gabriel-desktop:~/Documentos/Facultad de Ingeniería/Algoritmos y Program
+ación 1/TP_1/pruebas_preliminares/manejo_formato_fecha$ gcc -ansi -pedantic -Wall -o date_format.exe date_format.c
+gabriel@gabriel-desktop:~/Documentos/Facultad de Ingeniería/Algoritmos y Program
+ación 1/TP_1/pruebas_preliminares/manejo_formato_fecha$ ./date_format.exe -u d -f2 13121993 -f1 3222005 -fmt2 DDDAAAA -fmt1 DDMMAAAA -p 3 
+formato 1: DDMMAAAA
+formato 2: DDDAAAA
+fecha 1: 3222005
+fecha 2: 13121993
+unidad de salida: d
+precision: 3
+prompt

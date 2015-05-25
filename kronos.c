@@ -160,20 +160,38 @@ int main (int argc, char * argv[])
 	return EXIT_SUCCESS;
 }
 
-status_t parse_date_with_hour_fmt (ulong date, struct tm * str_date)
+status_t parse_date_with_hour_fmt (ulong date, struct tm * p_str_date)
 {
-	str_date->tm_sec = date % 100;
-	date /= 100;
-	str_date->tm_min = date % 100;
-	date /= 100;
-	str_date->tm_hour = date % 100;
-	date /= 100;
-	str_date->tm_year = date % 10000;
-	date /= 10000;
-	str_date->tm_mon = date % 100;
-	date /= 100;
-	str_date->tm_mday = date;
-
+	p_str_date->tm_sec = date % 100;
+	if(p_str_date->tm_sec>=60 || p_str_date->tm_sec<0)
+    return error_handling(ERROR_INVALID_SEC);
+    
+  date /= 100;
+	p_str_date->tm_min = date % 100;
+	if(p_str_date->tm_min>=60 || p_str_date->tm_min<0)
+    return error_handling(ERROR_INVALID_MIN);
+	
+  date /= 100;
+	p_str_date->tm_hour = date % 100;
+	if(p_str_date->tm_hour>=24 || p_str_date->tm_hour<0)
+    return error_handling(ERROR_INVALID_HOUR);
+	
+  date /= 100;
+	p_str_date->tm_year = (date % 10000) - 1900; /* guardo como especifica struct tm: dferencia con 1900 */
+	if(p_str_date->tm_year>=0) /* valido para fechas a partir del año 0 */
+    return error_handling(ERROR_INVALID_YEAR);
+	
+  date /= 10000;
+	p_str_date->tm_mon = (date % 100) - 1; /* idem, guardo de 0 a 11 */
+	if(p_str_date->tm_mon>=12 || p_str_date->tm_mon<0)
+    return error_handling(ERROR_INVALID_MONTH);
+	
+  date /= 100;
+	p_str_date->tm_mday = date;
+  if(validate_mday!=OK)
+    return error_handling(ERROR_INCOMPATIBLE_MDAY);
+  
+  
 	return OK;
 }
 		

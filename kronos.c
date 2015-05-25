@@ -315,6 +315,39 @@ status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_dat
 	return OK;
 }
 
+status_t validate_mday(struct tm * p_str_date) /* me faltan punteros? */
+{
+
+  switch(p_str_date->tm_mon)
+  {
+    case 1 : /* FEBRERO - utilizo eficiente codigo isleapyear */
+      if((p_str_date->tm_year & 3) == 0 && ((p_str_date->tm_year % 25) != 0 || (p_str_date->tm_year & 15) == 0)){
+        if(p_str_date->tm_mday>29 || p_str_date->tm_mon<1) /* es año bisiesto */
+          return error_handling(ERROR_INVALID_MDAY_LEAP_YEAR);
+      }else if(p_str_date->tm_mday>28 || p_str_date->tm_mon<1) /* no es año bisiesto */
+          return error_handling(ERROR_INVALID_MDAY);
+
+    case 0 : /* ENERO */
+    case 2 : /* MARZO */
+    case 4 : /* MAYO */
+    case 6 : /* JULIO */
+    case 7 : /* AGOSTO */
+    case 9 : /* OCTUBRE */
+    case 11 :/* DICIEMBRE */
+    if(p_str_date->tm_mday>31 || p_str_date->tm_mon<1)
+      return error_handling(ERROR_INVALID_MDAY);
+        
+    case 3 : /* ABRIL */
+    case 5 : /* JUNIO */
+    case 8 :/* SEPTIEMBRE */
+    case 10 :/* NOVIEMBRE */
+    if(p_str_date->tm_mday>30 || p_str_date->tm_mon<1)
+      return error_handling(ERROR_INVALID_MDAY);
+    default ;
+  }
+  return OK;
+}
+
 
 /* 24 de MAYO de 2015 */
 gabriel@gabriel-desktop:~/Documentos/Facultad de Ingeniería/Algoritmos y Program

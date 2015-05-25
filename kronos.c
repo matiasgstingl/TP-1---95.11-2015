@@ -74,17 +74,12 @@ status_t validate_arguments(int argc,char* argv[],char*date1_fmt,ulong*p_date1,c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-#define ENGLISH_LENG
-
-
-
-#define DATE_FORMAT_1 "DDMMAAAAhhmmss"
-#define DATE_FORMAT_1_LEN 14
-#define DATE_FORMAT_2 "DDMMAAAA"
-#define DATE_FORMAT_2_LEN 8
-#define DATE_FORMAT_3 "DDDAAAA"
-#define DATE_FORMAT_3_LEN 7
+#define DATE_FORMAT_WITH_HOUR "DDMMAAAAhhmmss"
+#define DATE_FORMAT_WITH_HOUR_LEN 14
+#define DATE_FORMAT_DATE "DDMMAAAA"
+#define DATE_FORMAT_JULIAN "DDDAAAA"
 #define QTY_FORMATS 3
 
 #define CMD_ARG_QTY_PROGRAM_ARGS 13
@@ -97,80 +92,113 @@ status_t validate_arguments(int argc,char* argv[],char*date1_fmt,ulong*p_date1,c
 #define CMD_ARG_FLAG_OUT_UNIT "-u"
 #define CMD_ARG_FLAG_PRECISION "-p"
 #define CMD_ARG_ARGC 13
-/******************BANDERAS DE UNIDAD DE TIEMPO *******************************/
+
 #define TIME_UNIT_FLAG_SECONDS 's'
 #define TIME_UNIT_FLAG_MINUTES 'm'
 #define TIME_UNIT_FLAG_HOURS 'h'
 #define TIME_UNIT_FLAG_DAYS 'd'
-/***************MENSAJES DE ERROR****************************************************/
+
 #define MSG_ERROR_FEW_ARGS "Error, pocos argumentos en su linea de orden."
 #define MSG_ERROR_MANY_ARGS "Error, demasiados argumentos en su linea de orden."
 #define MSG_ERROR_INVALID_ARG "Error, argumento invalido."
 #define MSG_ERROR_NULL_POINTER "Error de puntero nulo."
-#define MSG_ERROR_INVALID_DATE_1 "La fecha 1 ingresada es invalida."
-#define MSG_ERROR_INVALID_DATE_2 "La fecha 2 ingresada es invalida."
-#define MSG_ERROR_INVALID_OUT_UNIT "La unidad especificada es invalida."
-#define MSG_ERROR_INVALID_PRECISION "La precision especificada es invalida."
+#define MSG_ERROR_INVALID_DATE_1 "Error, La fecha 1 ingresada es invalida."
+#define MSG_ERROR_INVALID_DATE_2 "Error, La fecha 2 ingresada es invalida."
+#define MSG_ERROR_INVALID_OUT_UNIT "Error, La unidad especificada es invalida."
+#define MSG_ERROR_INVALID_PRECISION "Error, La precision especificada es invalida."
+#define MSG_ERROR_INVALID_FORMAT_1 "Error, El formato para la fecha 1 es invalido."
+#define MSG_ERROR_INVALID_FORMAT_2 "Error, El formato para la fecha 2 es invalido."
+#define MSG_ERROR_REPEATED_ARG "Error, Se ha repetido una bandera."
+
 
 /******************************* TIPOS ENUMERATIVOS Y ESTRUCTURAS ***************/
-typedef enum{OK = -1, ERROR_FEW_ARGS = 0, ERROR_MANY_ARGS = 1, ERROR_INVALID_ARG = 2, ERROR_NULL_POINTER = 3, ERROR_INVALID_DATE_1 = 4, ERROR_INVALID_DATE_2 = 5, ERROR_INVALID_OUT_UNIT = 6, ERROR_INVALID_PRECISION = 7}status_t;
+typedef enum{ERROR = -2, OK = -1, ERROR_FEW_ARGS = 0, ERROR_MANY_ARGS = 1, ERROR_INVALID_ARG = 2, ERROR_NULL_POINTER = 3, ERROR_INVALID_DATE_1 = 4, ERROR_INVALID_DATE_2 = 5, ERROR_INVALID_OUT_UNIT = 6, ERROR_INVALID_PRECISION = 7, ERROR_INVALID_FORMAT_1 = 8, ERROR_INVALID_FORMAT_2 = 9, ERROR_REPEATED_ARG = 10}status_t;
 typedef enum{TRUE, FALSE}bool_t;
 typedef unsigned long ulong;
 /********************************************************************************/
 
 /************************************** DICCIONARIOS *************************/
-char * date_formats[] = {DATE_FORMAT_1, DATE_FORMAT_2, DATE_FORMAT_3};  
-char * error_msgs[] = {MSG_ERROR_FEW_ARGS, MSG_ERROR_MANY_ARGS, MSG_ERROR_INVALID_ARG, MSG_ERROR_NULL_POINTER, MSG_ERROR_INVALID_DATE_1, MSG_ERROR_INVALID_DATE_2, MSG_ERROR_INVALID_OUT_UNIT, MSG_ERROR_INVALID_PRECISION}; 
+char * date_formats[] = {DATE_FORMAT_WITH_HOUR, DATE_FORMAT_DATE, DATE_FORMAT_JULIAN};  
+char * error_msgs[] = {MSG_ERROR_FEW_ARGS, MSG_ERROR_MANY_ARGS, MSG_ERROR_INVALID_ARG, MSG_ERROR_NULL_POINTER, MSG_ERROR_INVALID_DATE_1, MSG_ERROR_INVALID_DATE_2, MSG_ERROR_INVALID_OUT_UNIT, MSG_ERROR_INVALID_PRECISION, MSG_ERROR_INVALID_FORMAT_1, MSG_ERROR_INVALID_FORMAT_2, MSG_ERROR_REPEATED_ARG}; 
 /*****************************************************************************/
 
 /************* PROTOTIPOS *****************/
-status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_date_2, char ** p_date_1_fmt, char ** p_date_2_fmt, char * p_output_unit, size_t * p_precision);
-status_t error_handling(status_t err);
+status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_date_2, char ** p_date_1_fmt, char ** p_date_2_fmt, char * p_output_unit, int * p_precision);
+status_t handle_error(status_t err);
+status_t parse_date_with_hour_fmt (ulong date, struct tm * str_date);
 /******************************************/
 
 int main (int argc, char * argv[])
 {
-	ulong date_1;
-	ulong date_2;
-	char * date_1_fmt;
-	char * date_2_fmt;
-	char output_unit;
-	size_t precision;
+	/*** INICIALIZAMOS ***/
+	ulong date_1 = 0;
+	ulong date_2 = 0;
+	char * date_1_fmt = NULL;
+	char * date_2_fmt = NULL;
+	char output_unit = 0;
+	int precision = -1;
+	struct tm str_date_1;
+	struct tm str_date_2;
+	/*********************/
 
 	if(validate_args(argc, argv, &date_1, &date_2, &date_1_fmt, &date_2_fmt, &output_unit, &precision)!=OK)
 		return EXIT_FAILURE;
 
+	if(parse_date_with_hour_fmt(date_1, &str_date_1)!=OK)
+		return EXIT_FAILURE;
+	
+	printf("La dia es %i\n", str_date_1.tm_mday);
+	
+/*
 	printf("formato 1: %s\n", date_1_fmt);
 	printf("formato 2: %s\n", date_2_fmt);
 	printf("fecha 1: %lu\n", date_1);
 	printf("fecha 2: %lu\n", date_2);
 	printf("unidad de salida: %c\n", output_unit);
-	printf("precision: %lu\n", precision);
-
+	printf("precision: %i\n", precision);
+*/
 	return EXIT_SUCCESS;
 }
 
-status_t error_handling(status_t err)
+status_t parse_date_with_hour_fmt (ulong date, struct tm * str_date)
+{
+	str_date->tm_sec = date % 100;
+	date /= 100;
+	str_date->tm_min = date % 100;
+	date /= 100;
+	str_date->tm_hour = date % 100;
+	date /= 100;
+	str_date->tm_year = date % 10000;
+	date /= 10000;
+	str_date->tm_mon = date % 100;
+	date /= 100;
+	str_date->tm_mday = date;
+
+	return OK;
+}
+		
+
+status_t handle_error(status_t err)
 {
 	fprintf(stderr, "%s\n", error_msgs[err]);
 	return err;
 }
 
-status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_date_2, char ** p_date_1_fmt, char ** p_date_2_fmt, char * p_output_unit, size_t * p_precision)
+status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_date_2, char ** p_date_1_fmt, char ** p_date_2_fmt, char * p_output_unit, int * p_precision)
 {
 	size_t i, args_to_validate;
 	char * aux;
 	
 	/********** VALIDAMOS PUNTEROS **********/
 	if(argv == NULL || p_date_1 == NULL || p_date_2 == NULL || p_date_1_fmt == NULL || p_date_2_fmt == NULL || p_output_unit == NULL || p_precision == NULL)
-		return error_handling(ERROR_NULL_POINTER);
+		return handle_error(ERROR_NULL_POINTER);
 
 	/********** VALIDAMOS CANTIDAD **********/
 	if(argc < CMD_ARG_ARGC)
-		return error_handling(ERROR_FEW_ARGS);
+		return handle_error(ERROR_FEW_ARGS);
 
 	if(argc > CMD_ARG_ARGC)
-		return error_handling(ERROR_MANY_ARGS);
+		return handle_error(ERROR_MANY_ARGS);
 	/****************************************/
 
 	/********** VALIDAMOS FLAG A FLAG ***********/
@@ -178,12 +206,16 @@ status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_dat
 	{
 		if(strcmp(argv[i], CMD_ARG_FLAG_FORMAT_1) == 0)
 		{
+			if( (strcmp(argv[i+1], DATE_FORMAT_WITH_HOUR)) && (strcmp(argv[i+1], DATE_FORMAT_DATE)) && (strcmp(argv[i+1], DATE_FORMAT_JULIAN)) )
+				return handle_error(ERROR_INVALID_FORMAT_1);
 			*p_date_1_fmt = argv[i+1];
 			args_to_validate-=FLAG_TO_FLAG_STEP;
 			continue;		
 		}	
 		if(strcmp(argv[i], CMD_ARG_FLAG_FORMAT_2) == 0)
 		{
+			if( (strcmp(argv[i+1], DATE_FORMAT_WITH_HOUR)) && (strcmp(argv[i+1], DATE_FORMAT_DATE)) && (strcmp(argv[i+1], DATE_FORMAT_JULIAN)) )
+				return handle_error(ERROR_INVALID_FORMAT_2);
 			*p_date_2_fmt = argv[i+1];
 			args_to_validate-=FLAG_TO_FLAG_STEP;			
 			continue;
@@ -192,7 +224,7 @@ status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_dat
 		{
 			*p_date_1 = (ulong) strtod(argv[i+1], &aux);
 			if(*aux)
-				return error_handling(ERROR_INVALID_DATE_2); 
+				return handle_error(ERROR_INVALID_DATE_2); 
 			args_to_validate-=FLAG_TO_FLAG_STEP;
 			continue;
 		}
@@ -200,34 +232,47 @@ status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_dat
 		{
 			*p_date_2 = (ulong) strtod(argv[i+1], &aux);
 			if(*aux)
-				return error_handling(ERROR_INVALID_DATE_2);
+				return handle_error(ERROR_INVALID_DATE_2);
 			args_to_validate-=FLAG_TO_FLAG_STEP;
 			continue;
 		}
 		if(strcmp(argv[i], CMD_ARG_FLAG_OUT_UNIT) == 0)
 		{
+			if(strlen(argv[i+1])>1)
+				return handle_error(ERROR_INVALID_OUT_UNIT);
 			*p_output_unit = argv[i+1][0];
-			if(*p_output_unit != 's' && *p_output_unit != 'm' && *p_output_unit != 'h' && *p_output_unit != 'd')
-				return error_handling(ERROR_INVALID_OUT_UNIT); 
+			if(*p_output_unit != TIME_UNIT_FLAG_SECONDS && *p_output_unit != TIME_UNIT_FLAG_MINUTES && *p_output_unit != TIME_UNIT_FLAG_HOURS && *p_output_unit != TIME_UNIT_FLAG_DAYS)
+				return handle_error(ERROR_INVALID_OUT_UNIT); 
 			args_to_validate-=FLAG_TO_FLAG_STEP;
 			continue;
 		}
 		if(strcmp(argv[i], CMD_ARG_FLAG_PRECISION) == 0)
 		{
-			*p_precision = (size_t) strtol(argv[i+1], &aux, 10);
+			*p_precision = (int) strtol(argv[i+1], &aux, 10);
 			if(*aux)
-				return error_handling(ERROR_INVALID_PRECISION);
+				return handle_error(ERROR_INVALID_PRECISION);
 			if(*p_precision != 0 && *p_precision != 1 && *p_precision != 2 && *p_precision != 3)
-				return error_handling(ERROR_INVALID_PRECISION);
+				return handle_error(ERROR_INVALID_PRECISION);
 			args_to_validate-=FLAG_TO_FLAG_STEP;
 			continue;
 		}
-		return error_handling(ERROR_INVALID_ARG);
+		return handle_error(ERROR_INVALID_ARG);
 	/********************************************/				
 	}
+
+	if(!strcmp(*p_date_1_fmt, DATE_FORMAT_WITH_HOUR))
+		if(*p_date_1<1000000000000 || *p_date_1>100000000000000)
+			return handle_error(ERROR_INVALID_DATE_1);
+
+	if(!(*p_date_1) || !(*p_date_2) || *p_date_1_fmt == NULL || *p_date_2_fmt == NULL || !(*p_output_unit) || *p_precision == -1)
+		return handle_error(ERROR_REPEATED_ARG);
+
+	if(args_to_validate)
+		return ERROR;
 			
 	return OK;
 }	
+
 
 /* 24 de MAYO de 2015 */
 gabriel@gabriel-desktop:~/Documentos/Facultad de Ingeniería/Algoritmos y Program

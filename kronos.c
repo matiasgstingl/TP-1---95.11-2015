@@ -79,7 +79,9 @@ status_t validate_arguments(int argc,char* argv[],char*date1_fmt,ulong*p_date1,c
 #define DATE_FORMAT_WITH_HOUR "DDMMAAAAhhmmss"
 #define DATE_FORMAT_WITH_HOUR_LEN 14
 #define DATE_FORMAT_DATE "DDMMAAAA"
+#define DATE_FORMAT_DATE_LEN 8
 #define DATE_FORMAT_JULIAN "DDDAAAA"
+#define DATE_FORMAT_JULIAN_LEN 7
 #define QTY_FORMATS 3
 
 #define CMD_ARG_QTY_PROGRAM_ARGS 13
@@ -147,16 +149,14 @@ int main (int argc, char * argv[])
 	if(parse_date_with_hour_fmt(date_1, &str_date_1)!=OK)
 		return EXIT_FAILURE;
 	
-	printf("La dia es %i\n", str_date_1.tm_mday);
-	
-/*
+
 	printf("formato 1: %s\n", date_1_fmt);
 	printf("formato 2: %s\n", date_2_fmt);
 	printf("fecha 1: %lu\n", date_1);
 	printf("fecha 2: %lu\n", date_2);
 	printf("unidad de salida: %c\n", output_unit);
 	printf("precision: %i\n", precision);
-*/
+
 	return EXIT_SUCCESS;
 }
 
@@ -188,6 +188,8 @@ status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_dat
 {
 	size_t i, args_to_validate;
 	char * aux;
+	char * date_1_user;
+	char * date_2_user;
 	
 	/********** VALIDAMOS PUNTEROS **********/
 	if(argv == NULL || p_date_1 == NULL || p_date_2 == NULL || p_date_1_fmt == NULL || p_date_2_fmt == NULL || p_output_unit == NULL || p_precision == NULL)
@@ -222,6 +224,7 @@ status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_dat
 		}
 		if(strcmp(argv[i], CMD_ARG_FLAG_DATE_1) == 0)
 		{
+			date_1_user = argv[i+1];
 			*p_date_1 = (ulong) strtod(argv[i+1], &aux);
 			if(*aux)
 				return handle_error(ERROR_INVALID_DATE_2); 
@@ -230,6 +233,7 @@ status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_dat
 		}
 		if(strcmp(argv[i], CMD_ARG_FLAG_DATE_2) == 0)
 		{
+			date_2_user = argv[i+1];
 			*p_date_2 = (ulong) strtod(argv[i+1], &aux);
 			if(*aux)
 				return handle_error(ERROR_INVALID_DATE_2);
@@ -260,9 +264,29 @@ status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_dat
 	/********************************************/				
 	}
 
+	/************ VALIDAMOS QUE EL ANCHO DE LA FECHA IGNRESADA SEA CORRECTO **********/
 	if(!strcmp(*p_date_1_fmt, DATE_FORMAT_WITH_HOUR))
-		if(*p_date_1<1000000000000 || *p_date_1>100000000000000)
+		if(strlen(date_1_user)!=DATE_FORMAT_WITH_HOUR_LEN)
 			return handle_error(ERROR_INVALID_DATE_1);
+
+	if(!strcmp(*p_date_1_fmt, DATE_FORMAT_DATE))
+		if(strlen(date_1_user)!=DATE_FORMAT_DATE_LEN)
+			return handle_error(ERROR_INVALID_DATE_1);
+	if(!strcmp(*p_date_1_fmt, DATE_FORMAT_JULIAN))
+		if(strlen(date_1_user)!=DATE_FORMAT_JULIAN_LEN)
+			return handle_error(ERROR_INVALID_DATE_1);
+
+	if(!strcmp(*p_date_2_fmt, DATE_FORMAT_WITH_HOUR))
+		if(strlen(date_2_user)!=DATE_FORMAT_WITH_HOUR_LEN)
+			return handle_error(ERROR_INVALID_DATE_2);
+	if(!strcmp(*p_date_2_fmt, DATE_FORMAT_DATE))
+		if(strlen(date_2_user)!=DATE_FORMAT_DATE_LEN)
+			return handle_error(ERROR_INVALID_DATE_2);
+	if(!strcmp(*p_date_2_fmt, DATE_FORMAT_JULIAN))
+		if(strlen(date_2_user)!=DATE_FORMAT_JULIAN_LEN)
+			return handle_error(ERROR_INVALID_DATE_2);
+	/**********************************************************************************/
+
 
 	if(!(*p_date_1) || !(*p_date_2) || *p_date_1_fmt == NULL || *p_date_2_fmt == NULL || !(*p_output_unit) || *p_precision == -1)
 		return handle_error(ERROR_REPEATED_ARG);
@@ -271,7 +295,7 @@ status_t validate_args (int argc, char * argv[], ulong * p_date_1, ulong * p_dat
 		return ERROR;
 			
 	return OK;
-}	
+}
 
 
 /* 24 de MAYO de 2015 */
